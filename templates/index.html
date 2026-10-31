@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Smart Task Manager</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+<main class="container">
+
+    <header class="hero">
+        <p class="eyebrow">BEHAVIORAL DESIGN PATTERNS</p>
+        <h1>Smart Task Manager</h1>
+        <p>Create tasks, manage their previous states, and restore changes.</p>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <section aria-live="polite">
+                {% for category, message in messages %}
+                    <p class="message {{ category }}">
+                        {{ message }}
+                    </p>
+                {% endfor %}
+            </section>
+        {% endif %}
+    {% endwith %}
+
+    <section class="panel">
+        <h2>Create a task</h2>
+
+        <form action="{{ url_for('add_task') }}"
+              method="post"
+              class="add-form">
+
+            <label for="title">Task title</label>
+            <input
+                type="text"
+                id="title"
+                name="title"
+                maxlength="100"
+                placeholder="Enter a task title"
+                required>
+
+            <button type="submit">Add task</button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <div class="section-heading">
+            <div>
+                <h2>My tasks</h2>
+                <p class="muted">
+                    Select a sorting strategy.
+                </p>
+            </div>
+
+            <form action="{{ url_for('index') }}"
+                  method="get"
+                  class="sort-form">
+
+                <label for="sort">Sort by</label>
+
+                <select id="sort" name="sort">
+                    <option value="id"
+                        {% if sort_by == "id" %}selected{% endif %}>
+                        ID
+                    </option>
+
+                    <option value="title"
+                        {% if sort_by == "title" %}selected{% endif %}>
+                        Title
+                    </option>
+
+                    <option value="status"
+                        {% if sort_by == "status" %}selected{% endif %}>
+                        Status
+                    </option>
+                </select>
+
+                <button type="submit" class="secondary">
+                    Sort
+                </button>
+            </form>
+        </div>
+
+        {% if tasks %}
+            <div class="task-list">
+                {% for task in tasks %}
+                    <article class="task-card">
+
+                        <div class="task-heading">
+                            <span class="task-id">
+                                Task #{{ task.id }}
+                            </span>
+
+                            <span class="status {{ task.status|lower }}">
+                                {{ task.status }}
+                            </span>
+                        </div>
+
+                        <h3>{{ task.title }}</h3>
+
+                        <div class="actions">
+
+                            {% if task.status == "Pending" %}
+                                <form
+                                    action="{{ url_for('complete_task', task_id=task.id) }}"
+                                    method="post">
+
+                                    <button type="submit">
+                                        Mark completed
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            {% if task.status == "Completed" %}
+                                <form
+                                    action="{{ url_for('reopen_task', task_id=task.id) }}"
+                                    method="post">
+
+                                    <button type="submit" class="secondary">
+                                        Reopen
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            <form
+                                action="{{ url_for('undo_task', task_id=task.id) }}"
+                                method="post">
+
+                                <button type="submit" class="undo">
+                                    Undo last change
+                                </button>
+                            </form>
+
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty-state">No tasks available.</p>
+        {% endif %}
+    </section>
+
+    <section class="panel">
+        <h2>Activity notifications</h2>
+
+        <p class="muted">
+            These messages are generated by the Observer pattern.
+        </p>
+
+        {% if notifications %}
+            <ul class="notification-list">
+                {% for notification in notifications %}
+                    <li>{{ notification }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty-state">
+                No notifications available.
+            </p>
+        {% endif %}
+    </section>
+
+    <footer>
+        Smart Task Manager &middot; Educational demonstration
+    </footer>
+
+</main>
+</body>
+</html>
